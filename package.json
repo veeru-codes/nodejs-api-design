@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-api-design",
+  "version": "1.0.0",
+  "description": "API design using Node.js, Express, PostgreSQL, and Prisma",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "dev": "nodemon ./src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com-veeru-codes:veeru-codes/nodejs-api-design.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
