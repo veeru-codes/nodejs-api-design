@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { body } from 'express-validator'
 
 const updatepointRouter = Router()
 
@@ -8,9 +9,17 @@ updatepointRouter.get('/', async (req, res) => {
 
 updatepointRouter.get('/:id', async (req, res) => {})
 
-updatepointRouter.post('/', async (req, res) => {})
+updatepointRouter.post(
+  '/',
+  body(['name', 'description', 'updateId']).exists().isString(),
+  async (req, res) => {}
+)
 
-updatepointRouter.put('/:id', async (req, res) => {})
+updatepointRouter.put(
+  '/:id',
+  body(['name', 'description']).optional().isString(),
+  async (req, res) => {}
+)
 
 updatepointRouter.delete('/:id', async (req, res) => {})
 

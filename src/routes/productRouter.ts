@@ -1,17 +1,32 @@
 import { Router } from 'express'
+import { body } from 'express-validator'
+import { handleInputErrors } from '../modules/middleware'
+import {
+  createProduct,
+  deleteProductById,
+  getProductById,
+  getProducts,
+  updateProductById,
+} from '../handlers/product'
 
 const productRouter = Router()
 
-productRouter.get('/', async (req, res) => {
-  res.status(200).json({ status: 'success', message: 'Get all products' })
-})
+productRouter
+  .route('/')
+  .get(getProducts)
+  .post(body('name'), handleInputErrors, createProduct)
 
-productRouter.get('/:id', async (req, res) => {})
+productRouter
+  .route('/:id')
+  .get(getProductById)
+  .put(body('name'), handleInputErrors, updateProductById)
+  .delete(deleteProductById)
 
-productRouter.post('/', async (req, res) => {})
+// productRouter.get('/', getProducts)
+// productRouter.post('/', body('name'), handleInputErrors, createProduct)
 
-productRouter.put('/:id', async (req, res) => {})
-
-productRouter.delete('/:id', async (req, res) => {})
+// productRouter.get('/:id', getProductById)
+// productRouter.put('/:id', body('name'), handleInputErrors, updateProductById)
+// productRouter.delete('/:id', deleteProductById)
 
 export default productRouter
