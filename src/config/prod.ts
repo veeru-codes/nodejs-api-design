@@ -1,3 +1,3 @@
 export default {
-  prod: 5000,
+  prod: process.env.PORT,
 }
