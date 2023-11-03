@@ -18,9 +18,6 @@ export const createNewUser = async (req, res, next) => {
     e.type = 'input'
     next(e)
   }
-  
-
-  
 }
 
 export const signin = async (req, res) => {
