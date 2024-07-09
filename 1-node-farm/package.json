@@ -1,0 +1,17 @@
+{
+  "name": "nodejs-api-design",
+  "version": "1.0.0",
+  "description": "Backend developement course from Udemy taught by Jonas",
+  "main": "index.js",
+  "repository": "git@github.com-veeru-codes:veeru-codes/nodejs-api-design.git",
+  "author": "Veerendra <pvnreddy1997@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
