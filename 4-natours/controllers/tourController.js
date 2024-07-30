@@ -1,87 +1,169 @@
-const path = require('node:path')
-const fs = require('node:fs')
-
-const filePath = path.resolve(__dirname, '../dev-data/data/tours-simple.json')
-const tours = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-
-// Param middleware function
-const checkID = (req, res, next, val) => {
-  if (Number(req.params.id) > tours.length) {
-    return res.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    })
-  }
-
-  // If the current middleware function does not end the request-response cycle,
-  // it must call next() to pass control to the next middleware function.
-  // Otherwise, the request will be left hanging.
-  next()
-}
-
-// Create a checkBody middleware
-// Check if body contains the name and price property
-// If not, send back 400 (bad request)
-// Add it to the post handler stack
-const checkBody = (req, res, next) => {
-  if (!req.body.name || !req.body.price) {
-    return res
-      .status(400)
-      .json({ status: 'fail', message: 'Missing name or price properties' })
-  }
-
-  next()
-}
+const Tour = require('../models/tour.js')
+const APIFeatures = require('../utils/apiFeatures.js')
 
 // Using JSend specification to send the response
 // JSend is a specification for a simple, no-frills, JSON based format for application-level communication.
 
-const getAllTours = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tours: tours,
-    },
-  })
+const aliasTopTours = (req, res, next) => {
+  req.query.limit = '5'
+  req.query.sort = '-ratingsAverage,price'
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty'
+  next()
 }
 
-const getTour = (req, res) => {
-  const id = Number(req.params.id)
-  const tour = tours.find((tour) => tour.id === id)
+const getAllTours = async (req, res) => {
+  try {
+    // EXECUTE QUERY
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate()
 
-  if (!tour) {
-    return res.status(404).json({ status: 'fail', message: 'Invalid ID' })
+    const tours = await features.query
+
+    // SEND RESPONSE
+    res.status(200).json({
+      status: 'success',
+      results: tours.length,
+      data: { tours },
+    })
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message })
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: tour,
-    },
-  })
 }
 
-const createTour = (req, res) => {
-  const newId = tours[tours.length - 1].id + 1
-  const newTour = { ...req.body, id: newId }
-
-  tours.push(newTour)
-  fs.writeFile(filePath, JSON.stringify(tours), (err) => {
-    res.status(201).json({ status: 'success', data: { tour: newTour } })
-  })
+const getTour = async (req, res) => {
+  try {
+    // Behind The Scenes: Tour.findOne({ _id: req.params.id })
+    const tour = await Tour.findById(req.params.id)
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour: tour,
+      },
+    })
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message })
+  }
 }
 
-const updateTour = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: '<Updated tour goes here...>',
-    },
-  })
+const createTour = async (req, res) => {
+  try {
+    // Method 1
+    // const newTour = new Tour(req.body)
+    // newTour.save()
+
+    // Method 2
+    const newTour = await Tour.create(req.body)
+    res.status(201).json({
+      status: 'success',
+      data: {
+        tour: newTour,
+      },
+    })
+  } catch (error) {
+    res.status(400).json({
+      statu: 'fail',
+      message: error.message,
+    })
+  }
 }
 
-const deleteTour = (req, res) => {
-  res.status(204).json({ status: 'success', data: null })
+const updateTour = async (req, res) => {
+  try {
+    const updatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    })
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour: updatedTour,
+      },
+    })
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message })
+  }
+}
+
+const deleteTour = async (req, res) => {
+  try {
+    await Tour.findByIdAndDelete(req.params.id)
+    res.status(204).json({ status: 'success', data: null })
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message })
+  }
+}
+
+const getTourStats = async (req, res) => {
+  try {
+    const stats = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } },
+      },
+      {
+        $group: {
+          _id: { $toUpper: '$difficulty' },
+          numTours: { $sum: 1 },
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgRatings: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+      { $sort: { avgPrice: 1 } },
+      // { $match: { _id: { $ne: 'EASY' } } },
+    ])
+
+    res.status(200).json({ status: 'success', data: { stats } })
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({ status: 'fail', message: error.message })
+  }
+}
+
+const getMonthlyPlan = async (req, res) => {
+  try {
+    const year = Number(req.params.year)
+
+    const plan = await Tour.aggregate([
+      { $unwind: '$startDates' },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-01`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$startDates' },
+          numTourStarts: { $sum: 1 },
+          tours: { $push: '$name' },
+        },
+      },
+      {
+        $addFields: { month: '$_id' },
+      },
+      {
+        $project: { _id: 0 },
+      },
+      {
+        $sort: { numTourStarts: -1 },
+      },
+      // {
+      //   $limit: 12,
+      // },
+    ])
+
+    res.status(200).json({ status: 'success', data: { plan } })
+  } catch (error) {
+    res.status(400).json({ status: 'fail', message: error.message })
+  }
 }
 
 module.exports = {
@@ -90,6 +172,7 @@ module.exports = {
   createTour,
   updateTour,
   deleteTour,
-  checkID,
-  checkBody,
+  aliasTopTours,
+  getTourStats,
+  getMonthlyPlan,
 }
