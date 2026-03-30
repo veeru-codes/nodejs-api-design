@@ -1,23 +1,24 @@
-# nodejs-api-design
+# Node.js Mastery: Professional & Bootcamp Paths
 
-### Useful Prisma CLI Commands
+A collection of projects and notes from two of the most comprehensive Node.js courses available.
 
-```bash
-# Install Prisma and other dependencies
-$ npm i typescript ts-node @types/node prisma --save-dev
+## 📚 Learning Tracks
 
-# Initialize Prisma
-$ npx prisma init
+### 1. Professional Backend Series (Hitesh Choudhary)
 
-# Format the schema
-$ npx prisma format
+- **Focus:** Master backend development with Node.js by building real-world applications using PostgreSQL, Drizzle ORM, MongoDB, JWT, Docker, and more. This course takes you from JavaScript fundamentals to deploying production-grade applications, step-by-step.
+- **Directory:** `./node-pro-backend`
+- **Key Learning:** How to structure "real-world" enterprise applications.
 
-# Install Prisma client
-$ npm i --save @prisma/client
+### 2. Node.js & Express Bootcamp (Jonas Schmedtmann)
 
-# Migration
-$ npx prisma migrate dev --name init
+- **Focus:** Deep dive into Express middleware, MongoDB/Mongoose modeling, and building the "Natours" API.
+- **Directory:** `./complete-node-bootcamp`
+- **Key Learning:** Comprehensive understanding of the Express ecosystem and SSR.
 
-# Look the data
-$ npx prisma studio
-```
+## 🛠 Tech Stack Explored
+
+- **Runtime:** Node.js
+- **Framework:** Express.js
+- **Database:** Postgres, Drizzle ORM, MongoDB & Redis
+- **DevOps:** Docker, AWS, Heroku/Render
